@@ -1,0 +1,12 @@
+# django
+db.sqlite3
+*.env
+
+# python
+__pycache__
+env
+
+*.json
+
+# ignore these for now until out of testing
+api/migrations/*
