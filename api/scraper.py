@@ -24,9 +24,9 @@ class LeetCodeScraper:
         if self.driver:
             self.driver.quit()
 
-    def _fetch_page_content(self, url: str):
+    def _fetch_page_content(self, url: str) -> str:
         if not self.driver:
-            return None
+            return ''
 
         self.driver.get(url)
         WebDriverWait(self.driver, 10).until(EC.presence_of_element_located((By.TAG_NAME, 'body')))
@@ -47,7 +47,17 @@ class LeetCodeScraper:
                 json.dump(self.json_data, json_file, indent=4)
 
     def _extract_code_snippet(self):
-        return self.json_data['props']['pageProps']['dehydratedState']['queries'][1]['state']['data']['question']['codeSnippets'][0]['code']
+        return self.json_data['props'] \
+                             ['pageProps'] \
+                             ['dehydratedState'] \
+                             ['queries'] \
+                             [1] \
+                             ['state'] \
+                             ['data'] \
+                             ['question'] \
+                             ['codeSnippets'] \
+                             [0] \
+                             ['code']
 
     def scrape(self, url: str):
         html_content = self._fetch_page_content(url)
