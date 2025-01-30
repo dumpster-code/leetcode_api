@@ -1,40 +1,67 @@
 import json
-from selenium import webdriver
-from selenium.webdriver.chrome.service import Service
-from selenium.webdriver.chrome.options import Options
-from selenium.webdriver.common.by import By
-from selenium.webdriver.support.ui import WebDriverWait
-from selenium.webdriver.support import expected_conditions as EC
-from webdriver_manager.chrome import ChromeDriverManager
 from bs4 import BeautifulSoup
+from selenium.common.exceptions import WebDriverException
+from selenium import webdriver
+from selenium.webdriver.chrome.options import Options
+from selenium.webdriver.chrome.service import Service
+from selenium.webdriver.common.by import By
+from selenium.webdriver.support import expected_conditions as EC
+from selenium.webdriver.support.ui import WebDriverWait
+from webdriver_manager.chrome import ChromeDriverManager
 
-options = Options()
-driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()), options=options)
-driver.get('https://leetcode.com/problems/two-sum/description')
 
-WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.TAG_NAME, 'body')))
-html_content = driver.page_source
+class LeetCodeScraper:
+    def __init__(self):
+        self.json_data = None
 
-soup = BeautifulSoup(html_content, 'html.parser')
-script_tag = soup.find('script', {'id': '__NEXT_DATA__'})
+        try:
+            self.driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()), options=Options())
+        except WebDriverException as e:
+            print(f"WebDriver initialization failed: {e}")
+            self.driver = None
 
-if script_tag:
-    script_content = script_tag.string
-    json_data = json.loads(script_content)
-    pretty_json = json.dumps(json_data, indent=4)
+    def __del__(self):
+        if self.driver:
+            self.driver.quit()
 
-    with open('output.json', 'w') as json_file:
-        json_file.write(pretty_json)
+    def _fetch_page_content(self, url: str):
+        if not self.driver:
+            return None
 
-    queries = json_data['props']['pageProps']['dehydratedState']['queries']
-    question_data = queries[1]['state']['data']['question']
-    code_snippets = question_data['codeSnippets']
+        self.driver.get(url)
+        WebDriverWait(self.driver, 10).until(EC.presence_of_element_located((By.TAG_NAME, 'body')))
+        return self.driver.page_source
 
-    code_snippet = code_snippets[0]['code']
+    def _extract_json_data(self, html_content):
+        if not html_content:
+            return
 
-    print(code_snippet)
+        soup = BeautifulSoup(html_content, 'html.parser')
+        script_tag = soup.find('script', {'id': '__NEXT_DATA__'})
+        if script_tag:
+            self.json_data = json.loads(script_tag.string)
 
-else:
-    print('Error Loading...')
+    def _save_json_to_file(self, filename='output.json'):
+        if self.json_data:
+            with open(filename, 'w') as json_file:
+                json.dump(self.json_data, json_file, indent=4)
 
-driver.quit()
+    def _extract_code_snippet(self):
+        return self.json_data['props']['pageProps']['dehydratedState']['queries'][1]['state']['data']['question']['codeSnippets'][0]['code']
+
+    def scrape(self, url: str):
+        html_content = self._fetch_page_content(url)
+        self._extract_json_data(html_content)
+        self._save_json_to_file()
+        code_snippet = self._extract_code_snippet()
+
+        if code_snippet:
+            print("Extracted Code Snippet:\n", code_snippet)
+        else:
+            print("No code snippet found.")
+
+
+if __name__ == '__main__':
+    url = 'https://leetcode.com/problems/two-sum/description'
+    scraper = LeetCodeScraper()
+    scraper.scrape(url)
