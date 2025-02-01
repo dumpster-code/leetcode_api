@@ -2,9 +2,9 @@ from typing import Any, Dict, Optional
 import requests
 import time
 
-from cookies import cookies
-from urls import GRAPHQL_URL
-from problem import LeetCodeProblem
+from api.core.cookies import cookies
+from api.core.urls import GRAPHQL_URL
+from api.core.problem import LeetCodeProblem
 
 
 class LeetCode:
@@ -20,7 +20,7 @@ class LeetCode:
             'X-CSRFToken': self.cookies['csrftoken'],
         }
 
-    def problem(self, slug: str) -> Optional[LeetCodeProblem]:
+    def get(self, slug: str) -> Optional[LeetCodeProblem]:
         data = self.__get_question_data(slug)
         if not data:
             print(f'Failed to get question data for: {slug}')
@@ -49,18 +49,21 @@ class LeetCode:
             print(f'Error during POST request: {e}')
             return None
 
-        result = response.json()
+        json = response.json()
 
-        slug = result.get('data', {}) \
+        slug = json.get('data', {}) \
                      .get('activeDailyCodingChallengeQuestion', {}) \
                      .get('question', {}) \
                      .get('titleSlug')
+
+        # import json
+        # print(json.dumps(json, indent=4))
 
         if not slug:
             print('Could not retrieve problem of the day')
             return None
 
-        return self.problem(slug)
+        return self.get(slug)
 
     def run(self, problem: LeetCodeProblem) -> bool:
         self.header['Referer'] = problem.url
@@ -150,11 +153,9 @@ class LeetCode:
             print(f'Error during POST request: {e}')
             return {}
 
-        result = response.json()
+        json = response.json()
 
-        # import json
-        # print(json.dumps(result, indent=4))
-        return result['data']['question']
+        return json['data']['question']
 
     def __get_synced_code(self, id: str) -> str:
         payload = {
@@ -174,12 +175,14 @@ class LeetCode:
 
         response = requests.post(GRAPHQL_URL, headers=self.header, cookies=self.cookies, json=payload)
 
-        result = response.json()
-        return result['data']['syncedCode']
+        json = response.json()
+        return json['data']['syncedCode']
 
 
-l = LeetCode()
-# p = l.problem('two-sum')
+# l = LeetCode()
+# p = l.get('two-sum')
 # p = l.daily_question()
-time.sleep(1)
+
+# print(p)
+# time.sleep(1)
 # l.submit(p)

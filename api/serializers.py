@@ -5,26 +5,33 @@ from .models import Problem, Topic
 class TopicSerializer(serializers.ModelSerializer):
     class Meta:
         model = Topic
-        fields = ['id', 'name']
+        fields = ['id', 'name', 'slug']
 
 
 class ProblemSerializer(serializers.ModelSerializer):
     topics = TopicSerializer(many=True, read_only=True)
-    related_problems = serializers.PrimaryKeyRelatedField(
-        many=True, queryset=Problem.objects.all()
-    )
 
     class Meta:
         model = Problem
         fields = [
-            'problem_id',
-            'title',
+            'data',
+            'content',
             'difficulty',
+            'dislikes',
+            'test_cases',
+            'hints',
+            'paid_only',
+            'likes',
+            'question_id',
+            'stats',
+            'title',
+            'title_slug',
+            'url',
+            'code_lang',
+            'code_slug',
             'personal_difficulty',
             'topics',
-            'related_problems',
             'date_added',
             'last_solved',
             'solved_count',
-            'url',
         ]

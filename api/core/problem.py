@@ -1,5 +1,7 @@
 from typing import List, Dict, Any, Set
-from urls import PROBLEM_URL
+import json
+
+from api.core.urls import PROBLEM_URL
 
 
 class LeetCodeProblem:
@@ -7,11 +9,11 @@ class LeetCodeProblem:
         self.json: Dict[str, Any] = json
 
         self.content: str = json.get('content', '')
-        self.difficulty: str = json.get('difficulty', '')
+        self.difficulty: str = json.get('difficulty', '').lower()
         self.dislikes: str = json.get('dislikes', '')
-        self.example_testcase_list: str = json.get('exampleTestcaseList', '')
+        self.test_cases: str = json.get('exampleTestcaseList', '')
         self.hints: List[str] = json.get('hints', [])
-        self.is_paid_only: str = json.get('isPaidOnly', '')
+        self.paid_only: str = json.get('isPaidOnly', '')
         self.likes: str = json.get('likes', '')
         self.question_id: str = json.get('questionId', '')
         self.stats: str = json.get('stats', '')
@@ -26,6 +28,9 @@ class LeetCodeProblem:
 
         self.topic_name: Set[str] = {topic['name'] for topic in json.get('topicTags')}
         self.topic_slug: Set[str] = {topic['slug'] for topic in json.get('topicTags')}
+
+    def __str__(self):
+        return json.dumps(self.json, indent=4)
 
     # TODO: default to python for now
     def payload(self) -> Dict[str, str]:

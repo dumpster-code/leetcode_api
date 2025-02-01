@@ -3,10 +3,11 @@ from django.utils.timezone import now
 
 
 class Topic(models.Model):
-    name = models.CharField(max_length=20)
+    name = models.CharField(max_length=50)
+    slug = models.CharField(max_length=50)
 
     def __str__(self):
-        return self.name
+        return self.slug
 
 
 class Problem(models.Model):
@@ -20,16 +21,33 @@ class Problem(models.Model):
         (HARD, 'Hard')
     ]
 
-    problem_id = models.IntegerField(unique=True)
-    title = models.CharField(max_length=256)
+    data = models.JSONField()
+
+    content = models.TextField()
     difficulty = models.CharField(
         max_length=6,
         choices=DIFFICULTY,
     )
-    personal_difficulty = models.IntegerField(default=0)
+    dislikes = models.IntegerField()
+    test_cases = models.JSONField()
+    hints = models.JSONField()
+    paid_only = models.BooleanField()
+    likes = models.IntegerField()
+    question_id = models.IntegerField(unique=True)
+    stats = models.JSONField()
+    title = models.CharField(max_length=128)
+    title_slug = models.CharField(max_length=128)
+    url = models.CharField(max_length=256)
 
-    topics = models.ManyToManyField(Topic, related_name='problems')
-    related_problems = models.ManyToManyField(
+    code_lang = models.JSONField()
+    code_slug = models.JSONField()
+
+    # similar_questions: str = json.get('similarQuestionList', '')
+
+    personal_difficulty = models.FloatField(default=5.0)
+
+    # topics = models.ManyToManyField(Topic, related_name='problems')
+    similar_questions = models.ManyToManyField(
         'self',
         symmetrical=True,
         blank=True
@@ -39,10 +57,5 @@ class Problem(models.Model):
     last_solved = models.DateTimeField(null=True, blank=True)
     solved_count = models.IntegerField(default=0)
 
-    url = models.CharField(max_length=256, null=True)
-
-    def __str__(self):
-        return f'{self.problem_id} {self.title}'
-
     class Meta:
-        ordering = ['problem_id']
+        ordering = ['question_id']

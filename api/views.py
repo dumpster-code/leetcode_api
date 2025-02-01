@@ -1,5 +1,3 @@
-import random
-
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from rest_framework import status
@@ -7,49 +5,22 @@ from rest_framework import status
 from .models import Topic, Problem
 from .serializers import TopicSerializer, ProblemSerializer
 
+from api.core.leetcode import LeetCode
+import api.core.database as database
+
 
 @api_view(['GET'])
-def get_problem(request) -> Response:
-    fake_problem = {
-        'problem_id': 1,
-        'title': 'Two Sum',
-        'difficulty': 'easy',
-        'personal_difficulty': 5,
-        'topics': [
-            {'id': 1, 'name': 'Array'},
-            {'id': 2, 'name': 'Hash Table'}
-        ],
-        'related_problems': [],
-        'date_added': '2025-01-01T00:00:00Z',
-        'last_solved': None,
-        'solved_count': 1000,
-        'url': 'https://leetcode.com/problems/two-sum',
-    }
+def problem(request, title_slug: str) -> Response:
+    if not Problem.objects.filter(title_slug=title_slug).exists():
+        lc = LeetCode()
+        lc_problem = lc.get(title_slug)
 
-    serializer = ProblemSerializer(data=fake_problem)
-    serializer.is_valid()
-    return Response(serializer.data, status=status.HTTP_200_OK)
+        if not lc_problem:
+            return Response({'error': 'Could not find problem'}, status=status.HTTP_404_NOT_FOUND)
 
+        if not database.store(lc_problem):
+            return Response({'error': 'Could not store problem'}, status=status.HTTP_400_BAD_REQUEST)
 
-# TODO: returning a random problem for now
-@api_view(['GET'])
-def solve_problem(request) -> Response:
-    count = Problem.objects.count()
-    if count == 0:
-        return Response({"error": "No problems stored in database"}, status=status.HTTP_404_NOT_FOUND)
-
-    random_index = random.randint(0, count - 1)
-    problem = Problem.objects.all()[random_index]
-
+    problem = Problem.objects.get(title_slug=title_slug)
     serializer = ProblemSerializer(problem)
     return Response(serializer.data, status=status.HTTP_200_OK)
-
-
-@api_view(['POST'])
-def create_problem(request) -> Response:
-    serializer = ProblemSerializer(data=request.data)
-    if not serializer.is_valid():
-        return Response(serializer.errors, status=status.HTTP_404_NOT_FOUND)
-
-    serializer.save()
-    return Response(serializer.data, status=status.HTTP_201_CREATED)
