@@ -1,6 +1,6 @@
 from typing import Any, Dict, Optional
-import json
 import requests
+import time
 
 from cookies import cookies
 from urls import GRAPHQL_URL
@@ -28,6 +28,44 @@ class LeetCode:
 
         return LeetCodeProblem(data)
 
+    def submit(self, problem: LeetCodeProblem) -> bool:
+        self.header['Referer'] = problem.url
+
+        payload = problem.payload()
+        end_point = f'https://leetcode.com/problems/{problem.title_slug}/interpret_solution/'
+
+        try:
+            response = requests.post(end_point, json=payload, headers=self.header, cookies=self.cookies)
+            response.raise_for_status()
+        except requests.exceptions.RequestException as e:
+            print(f'Error during POST request: {e}')
+
+        response: Dict[str, str] = response.json()
+        interpret_id: str = response.get('interpret_id')
+        if interpret_id:
+            print(f'Interpret ID: {interpret_id}')
+        success = False
+        retries = 5
+
+        while not success and retries > 0:
+            get_url = f'https://leetcode.com/submissions/detail/{interpret_id}/check/'
+            try:
+                response = requests.get(get_url, headers=self.header, cookies=self.cookies)
+                response.raise_for_status()
+                json = response.json()
+                success = 'state' in json and json['state'] == 'SUCCESS'
+                if success:
+                    print('Submission successful!')
+                else:
+                    print('Waiting for submission to complete...')
+            except requests.exceptions.RequestException as e:
+                print(f'Error during GET request: {e}')
+
+            retries -= 1
+            time.sleep(1)
+
+        print(json)
+
     def __get_question_data(self, slug: str) -> Dict[str, Any]:
         payload = {
             'query': '''
@@ -43,6 +81,7 @@ class LeetCode:
                     similarQuestions
                     stats
                     title
+                    titleSlug
                     codeSnippets {
                         lang
                         langSlug
@@ -61,9 +100,16 @@ class LeetCode:
             'operationName': 'questionData'
         }
 
-        response = requests.post(GRAPHQL_URL, headers=self.header, cookies=self.cookies, json=payload)
+        try:
+            response = requests.post(GRAPHQL_URL, headers=self.header, cookies=self.cookies, json=payload)
+            response.raise_for_status()
+        except requests.exceptions.RequestException as e:
+            print(f'Error during POST request: {e}')
+            return {}
 
         result = response.json()
+
+        # import json
         # print(json.dumps(result, indent=4))
         return result['data']['question']
 
@@ -90,4 +136,6 @@ class LeetCode:
 
 
 l = LeetCode()
-l.problem('special-array-i')
+p = l.problem('special-array-i')
+time.sleep(1)
+l.submit(p)

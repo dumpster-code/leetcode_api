@@ -16,39 +16,6 @@ class Submitter:
             'X-CSRFToken': self.cookies['csrftoken'],
         }
 
-        GRAPHQL_URL = "https://leetcode.com/graphql/"
-
-        question_id = '1'
-        query = {
-            'query': '''
-            query getQuestionTitleSlug($questionId: Int!) {
-              question(questionId: $questionId) {
-                titleSlug
-                title
-              }
-            }
-            ''',
-            'variables': {
-                'questionId': question_id
-            }
-        }
-
-        response = requests.post(GRAPHQL_URL, json=query)
-        data = response.json()
-        print(data)
-
-        if response.status_code == 200:
-            question = data.get('data', {}).get('question', {})
-            title_slug = question.get('titleSlug')
-
-            if title_slug:
-                print(f"✅ Title Slug for Question ID {question_id}: {title_slug}")
-                return title_slug
-            else:
-                print("❌ Failed to retrieve titleSlug.")
-        else:
-            print(f"❌ Request failed with status code: {response.status_code}")
-
     def run(self, problem: LeetCodeProblem):
         self.header['Referer'] = problem.url
 
