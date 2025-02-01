@@ -11,6 +11,7 @@ from selenium.webdriver.support.ui import WebDriverWait
 from webdriver_manager.chrome import ChromeDriverManager
 
 from problem import LeetCodeProblem
+from submitter import Submitter
 
 
 class LeetCodeScraper:
@@ -46,15 +47,16 @@ class LeetCodeScraper:
         try:
             with open(filename, 'w') as json_file:
                 json.dump(json, json_file, indent=4)
-            print(f"JSON data saved to {filename}")
+            print(f'JSON data saved to {filename}')
         except IOError as e:
-            print(f"Error saving JSON file: {e}")
+            print(f'Error saving JSON file: {e}')
 
     def scrape(self, url: str) -> LeetCodeProblem:
         html_content = self.__fetch_page_content(url)
         json = self.__get_json(html_content)
         # self.__save_json_to_file()
 
+        self.driver.close()
         return LeetCodeProblem(json)
 
 
@@ -63,9 +65,16 @@ if __name__ == '__main__':
     scraper = LeetCodeScraper()
     problem = scraper.scrape(url)
 
-    print(problem.url)
-    print(problem.id)
-    print(problem.title)
-    print(problem.difficulty)
-    print(problem.topics)
-    print(problem.code_snippet)
+    # print(problem.url)
+    # print(problem.question_id)
+    # print(problem.title)
+    # print(problem.difficulty)
+    # print(problem.topics)
+    # print(problem.language)
+    # print(problem.typed_code)
+    # print(problem.test_case)
+    # print(''.join(problem.test_case))
+
+    submitter = Submitter('')
+
+    submitter.run(problem)
