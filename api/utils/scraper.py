@@ -12,6 +12,7 @@ from webdriver_manager.chrome import ChromeDriverManager
 
 from problem import LeetCodeProblem
 from submitter import Submitter
+from cookies import cookies
 
 
 class LeetCodeScraper:
@@ -75,6 +76,6 @@ if __name__ == '__main__':
     # print(problem.test_case)
     # print(''.join(problem.test_case))
 
-    submitter = Submitter('')
+    submitter = Submitter(cookies)
 
     submitter.run(problem)

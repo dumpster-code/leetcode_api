@@ -52,6 +52,4 @@ class Submitter:
             retries -= 1
             time.sleep(1)
 
-        self.header.pop('Referer')
-
         print(json)
