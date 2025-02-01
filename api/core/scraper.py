@@ -20,7 +20,7 @@ class LeetCodeScraper:
         try:
             self.driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()), options=Options())
         except WebDriverException as e:
-            print(f"WebDriver initialization failed: {e}")
+            print(f'WebDriver initialization failed: {e}')
             self.driver = None
 
     def __del__(self):

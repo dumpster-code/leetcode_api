@@ -16,6 +16,39 @@ class Submitter:
             'X-CSRFToken': self.cookies['csrftoken'],
         }
 
+        GRAPHQL_URL = "https://leetcode.com/graphql/"
+
+        question_id = '1'
+        query = {
+            'query': '''
+            query getQuestionTitleSlug($questionId: Int!) {
+              question(questionId: $questionId) {
+                titleSlug
+                title
+              }
+            }
+            ''',
+            'variables': {
+                'questionId': question_id
+            }
+        }
+
+        response = requests.post(GRAPHQL_URL, json=query)
+        data = response.json()
+        print(data)
+
+        if response.status_code == 200:
+            question = data.get('data', {}).get('question', {})
+            title_slug = question.get('titleSlug')
+
+            if title_slug:
+                print(f"✅ Title Slug for Question ID {question_id}: {title_slug}")
+                return title_slug
+            else:
+                print("❌ Failed to retrieve titleSlug.")
+        else:
+            print(f"❌ Request failed with status code: {response.status_code}")
+
     def run(self, problem: LeetCodeProblem):
         self.header['Referer'] = problem.url
 
@@ -26,12 +59,12 @@ class Submitter:
             response = requests.post(end_point, json=payload, headers=self.header, cookies=self.cookies)
             response.raise_for_status()
         except requests.exceptions.RequestException as e:
-            print(f"Error during POST request: {e}")
+            print(f'Error during POST request: {e}')
 
         response: Dict[str, str] = response.json()
         interpret_id = response.get('interpret_id')
         if interpret_id:
-            print(f"Interpret ID: {interpret_id}")
+            print(f'Interpret ID: {interpret_id}')
         success = False
         retries = 5
 
@@ -43,11 +76,11 @@ class Submitter:
                 json = response.json()
                 success = 'state' in json and json['state'] == 'SUCCESS'
                 if success:
-                    print("Submission successful!")
+                    print('Submission successful!')
                 else:
-                    print("Waiting for submission to complete...")
+                    print('Waiting for submission to complete...')
             except requests.exceptions.RequestException as e:
-                print(f"Error during GET request: {e}")
+                print(f'Error during GET request: {e}')
 
             retries -= 1
             time.sleep(1)

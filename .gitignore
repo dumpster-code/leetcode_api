@@ -10,3 +10,4 @@ env
 
 # ignore these for now until out of testing
 api/migrations/*
+cookies.py
