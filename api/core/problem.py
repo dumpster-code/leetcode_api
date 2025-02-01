@@ -1,4 +1,4 @@
-from typing import Dict, Any, Set
+from typing import List, Dict, Any, Set
 from urls import PROBLEM_URL
 
 
@@ -10,10 +10,10 @@ class LeetCodeProblem:
         self.difficulty: str = json.get('difficulty', '')
         self.dislikes: str = json.get('dislikes', '')
         self.example_testcase_list: str = json.get('exampleTestcaseList', '')
+        self.hints: List[str] = json.get('hints', [])
         self.is_paid_only: str = json.get('isPaidOnly', '')
         self.likes: str = json.get('likes', '')
         self.question_id: str = json.get('questionId', '')
-        self.similar_questions: str = json.get('similarQuestions', '')
         self.stats: str = json.get('stats', '')
         self.title: str = json.get('title', '')
         self.title_slug: str = json.get('titleSlug', '')
@@ -21,6 +21,8 @@ class LeetCodeProblem:
 
         self.code_lang: Dict[str, str] = {code['lang']: code['code'] for code in json.get('codeSnippets')}
         self.code_slug: Dict[str, str] = {code['langSlug']: code['code'] for code in json.get('codeSnippets')}
+
+        self.similar_questions: str = json.get('similarQuestionList', '')
 
         self.topic_name: Set[str] = {topic['name'] for topic in json.get('topicTags')}
         self.topic_slug: Set[str] = {topic['slug'] for topic in json.get('topicTags')}

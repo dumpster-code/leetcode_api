@@ -28,7 +28,41 @@ class LeetCode:
 
         return LeetCodeProblem(data)
 
-    def submit(self, problem: LeetCodeProblem) -> bool:
+    def daily_question(self) -> Optional[LeetCodeProblem]:
+        payload = {
+            'query': '''
+            query questionOfToday {
+                activeDailyCodingChallengeQuestion {
+                    userStatus
+                    question {
+                        titleSlug
+                    }
+                }
+            }
+            ''',
+        }
+
+        try:
+            response = requests.post(GRAPHQL_URL, headers=self.header, cookies=self.cookies, json=payload)
+            response.raise_for_status()
+        except requests.exceptions.RequestException as e:
+            print(f'Error during POST request: {e}')
+            return None
+
+        result = response.json()
+
+        slug = result.get('data', {}) \
+                     .get('activeDailyCodingChallengeQuestion', {}) \
+                     .get('question', {}) \
+                     .get('titleSlug')
+
+        if not slug:
+            print('Could not retrieve problem of the day')
+            return None
+
+        return self.problem(slug)
+
+    def run(self, problem: LeetCodeProblem) -> bool:
         self.header['Referer'] = problem.url
 
         payload = problem.payload()
@@ -42,15 +76,17 @@ class LeetCode:
 
         response: Dict[str, str] = response.json()
         interpret_id: str = response.get('interpret_id')
-        if interpret_id:
-            print(f'Interpret ID: {interpret_id}')
+        if not interpret_id:
+            return False
+
+        print(f'Interpret ID: {interpret_id}')
+        url = f'https://leetcode.com/submissions/detail/{interpret_id}/check/'
+
         success = False
         retries = 5
-
         while not success and retries > 0:
-            get_url = f'https://leetcode.com/submissions/detail/{interpret_id}/check/'
             try:
-                response = requests.get(get_url, headers=self.header, cookies=self.cookies)
+                response = requests.get(url, headers=self.header, cookies=self.cookies)
                 response.raise_for_status()
                 json = response.json()
                 success = 'state' in json and json['state'] == 'SUCCESS'
@@ -75,22 +111,29 @@ class LeetCode:
                     difficulty
                     dislikes
                     exampleTestcaseList
+                    hints
                     isPaidOnly
                     likes
                     questionId
-                    similarQuestions
                     stats
                     title
                     titleSlug
                     codeSnippets {
+                        code
                         lang
                         langSlug
-                        code
+                    }
+                    similarQuestionList {
+                        difficulty
+                        isPaidOnly
+                        title
+                        titleSlug
                     }
                     topicTags {
                         name
                         slug
                     }
+                    isPaidOnly
                 }
             }
             ''',
@@ -136,6 +179,7 @@ class LeetCode:
 
 
 l = LeetCode()
-p = l.problem('special-array-i')
+# p = l.problem('two-sum')
+# p = l.daily_question()
 time.sleep(1)
-l.submit(p)
+# l.submit(p)
