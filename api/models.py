@@ -32,6 +32,7 @@ class Problem(models.Model):
 
     personal_difficulty = models.FloatField(default=5.0)
     topics = models.ManyToManyField(Topic, related_name='problems', blank=True)
+    related_problems = models.ManyToManyField('self', symmetrical=True, blank=True)
 
     date_added = models.DateTimeField(default=now)
     last_solved = models.DateTimeField(null=True, blank=True)
