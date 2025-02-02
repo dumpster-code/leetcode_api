@@ -4,7 +4,7 @@ from django.utils.timezone import now
 
 class Topic(models.Model):
     name = models.CharField(max_length=50)
-    slug = models.CharField(max_length=50)
+    slug = models.CharField(max_length=50, unique=True)
 
     def __str__(self):
         return self.slug
@@ -46,7 +46,9 @@ class Problem(models.Model):
 
     personal_difficulty = models.FloatField(default=5.0)
 
-    # topics = models.ManyToManyField(Topic, related_name='problems')
+    topics = models.ManyToManyField(Topic, related_name='problems', blank=True)
+    topic_tags = models.JSONField()
+
     similar_questions = models.ManyToManyField(
         'self',
         symmetrical=True,

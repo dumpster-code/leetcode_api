@@ -5,7 +5,7 @@ from .models import Problem, Topic
 class TopicSerializer(serializers.ModelSerializer):
     class Meta:
         model = Topic
-        fields = ['id', 'name', 'slug']
+        fields = ['name', 'slug']
 
 
 class ProblemSerializer(serializers.ModelSerializer):
@@ -31,6 +31,7 @@ class ProblemSerializer(serializers.ModelSerializer):
             'code_slug',
             'personal_difficulty',
             'topics',
+            'topic_tags',
             'date_added',
             'last_solved',
             'solved_count',

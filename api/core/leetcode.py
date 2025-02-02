@@ -52,9 +52,9 @@ class LeetCode:
         json = response.json()
 
         slug = json.get('data', {}) \
-                     .get('activeDailyCodingChallengeQuestion', {}) \
-                     .get('question', {}) \
-                     .get('titleSlug')
+                   .get('activeDailyCodingChallengeQuestion', {}) \
+                   .get('question', {}) \
+                   .get('titleSlug')
 
         # import json
         # print(json.dumps(json, indent=4))
@@ -177,12 +177,3 @@ class LeetCode:
 
         json = response.json()
         return json['data']['syncedCode']
-
-
-# l = LeetCode()
-# p = l.get('two-sum')
-# p = l.daily_question()
-
-# print(p)
-# time.sleep(1)
-# l.submit(p)

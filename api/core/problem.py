@@ -1,4 +1,4 @@
-from typing import List, Dict, Any, Set
+from typing import List, Dict, Any
 import json
 
 from api.core.urls import PROBLEM_URL
@@ -26,8 +26,7 @@ class LeetCodeProblem:
 
         self.similar_questions: str = json.get('similarQuestionList', '')
 
-        self.topic_name: Set[str] = {topic['name'] for topic in json.get('topicTags')}
-        self.topic_slug: Set[str] = {topic['slug'] for topic in json.get('topicTags')}
+        self.topics: List[Dict[str, str]] = json.get('topicTags')
 
     def __str__(self):
         return json.dumps(self.json, indent=4)

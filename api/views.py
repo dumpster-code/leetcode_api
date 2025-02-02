@@ -1,3 +1,5 @@
+from http import HTTPStatus
+
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from rest_framework import status
@@ -9,17 +11,26 @@ from api.core.leetcode import LeetCode
 import api.core.database as database
 
 
+# TODO: temporarily combine GET and POST while I scrape problems
 @api_view(['GET'])
 def problem(request, title_slug: str) -> Response:
     if not Problem.objects.filter(title_slug=title_slug).exists():
-        lc = LeetCode()
-        lc_problem = lc.get(title_slug)
+        if database.create_problem(title_slug) != HTTPStatus.OK:
+            return Response({'error': 'Bad Request'}, status=status.HTTP_400_BAD_REQUEST)
 
-        if not lc_problem:
-            return Response({'error': 'Could not find problem'}, status=status.HTTP_404_NOT_FOUND)
+        problem = Problem.objects.get(title_slug=title_slug)
 
-        if not database.store(lc_problem):
-            return Response({'error': 'Could not store problem'}, status=status.HTTP_400_BAD_REQUEST)
+        for name, slug in [t.values() for t in problem.topic_tags]:
+            if not Topic.objects.filter(name=name, slug=slug).exists():
+                if database.create_topic(name, slug) == HTTPStatus.BAD_REQUEST:
+                    return Response({'error': 'Bad Request'}, status=status.HTTP_400_BAD_REQUEST)
+
+            topic = Topic.objects.get(name=name, slug=slug)
+
+            topic.save()
+
+            problem.topics.add(topic)
+            topic.problems.add(problem)
 
     problem = Problem.objects.get(title_slug=title_slug)
     serializer = ProblemSerializer(problem)
