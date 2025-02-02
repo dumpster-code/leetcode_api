@@ -30,20 +30,8 @@ class Problem(models.Model):
 
     url = models.CharField(max_length=256)
 
-    # code_lang = models.JSONField()
-    # code_slug = models.JSONField()
-
-    # similar_questions: str = json.get('similarQuestionList', '')
-
     personal_difficulty = models.FloatField(default=5.0)
-
-    # topics = models.ManyToManyField(Topic, related_name='problems', blank=True)
-
-    # similarQuestionList = models.ManyToManyField(
-    #     'self',
-    #     symmetrical=True,
-    #     blank=True
-    # )
+    topics = models.ManyToManyField(Topic, related_name='problems', blank=True)
 
     date_added = models.DateTimeField(default=now)
     last_solved = models.DateTimeField(null=True, blank=True)
