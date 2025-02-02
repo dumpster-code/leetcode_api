@@ -46,7 +46,7 @@ class Problem(models.Model):
 
     personal_difficulty = models.FloatField(default=5.0)
 
-    topics = models.ManyToManyField(Topic, related_name='problems', blank=True)
+    # topics = models.ManyToManyField(Topic, related_name='problems', blank=True)
     topic_tags = models.JSONField()
 
     similar_questions = models.ManyToManyField(

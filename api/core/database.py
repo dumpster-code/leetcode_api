@@ -1,5 +1,8 @@
 from http import HTTPStatus
-from typing import Any, Dict
+from typing import Any, Optional, Dict
+
+from rest_framework.response import Response
+from rest_framework import status
 
 from api.core.leetcode import LeetCode
 from api.core.problem import LeetCodeProblem
@@ -7,24 +10,55 @@ from api.models import Topic, Problem
 from api.serializers import TopicSerializer, ProblemSerializer
 
 
-def create_problem(slug: str) -> HTTPStatus:
-    if Problem.objects.filter(title_slug=slug).exists():
-        return HTTPStatus.BAD_REQUEST
+def create_problem(slug: str) -> Response:
+    query = Problem.objects.filter(title_slug=slug)
+    if query.exists():
+        return Response(
+            data={'error': f'Problem: "{slug}" already exists.'},
+            status=status.HTTP_409_CONFLICT
+        )
 
     lc = LeetCode()
-    problem: LeetCodeProblem = lc.get(slug)
+    problem: Optional[LeetCodeProblem] = lc.get(slug)
+    # import json
+    # print(json.dumps(problem, indent=4))
 
-    if not problem:
-        return HTTPStatus.BAD_REQUEST
+    # if not problem:
+    #     return Response(
+    #         data={'error': f'Error finding problem: "{slug}". The problem does not exist.'},
+    #         status=status.HTTP_400_BAD_REQUEST
+    #     )
 
     data: Dict[str, Any] = _serialize_problem(problem)
     serializer = ProblemSerializer(data=data)
 
     if not serializer.is_valid():
-        return HTTPStatus.BAD_REQUEST
+        return Response(
+            data={'error': f'Invalid data for problem: {serializer.errors}'},
+            status=status.HTTP_400_BAD_REQUEST
+        )
 
     serializer.save()
-    return HTTPStatus.OK
+    return Response(
+        data=serializer.data,
+        status=status.HTTP_201_CREATED
+    )
+
+
+def get_problem(slug: str) -> Response:
+    try:
+        problem = Problem.objects.get(title_slug=slug)
+    except Problem.DoesNotExist:
+        return Response(
+            data={'error': f'Problem with slug {slug} not found.'},
+            status=status.HTTP_404_NOT_FOUND
+        )
+
+    serializer = ProblemSerializer(problem)
+    return Response(
+        data=serializer.data,
+        status=HTTPStatus.OK
+    )
 
 
 def create_topic(name: str, slug: str) -> HTTPStatus:

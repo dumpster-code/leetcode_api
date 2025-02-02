@@ -1,4 +1,4 @@
-from http import HTTPStatus
+# from http import HTTPStatus
 
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
@@ -10,14 +10,19 @@ from api.core import database
 
 
 @api_view(['GET'])
-def problem(request, title_slug: str) -> Response:
-    problem = _get_or_create_problem(title_slug)
-    if problem is None:
-        return Response({'error': 'Bad Request'}, status=status.HTTP_400_BAD_REQUEST)
+def get_problem(request, title_slug: str) -> Response:
+    return database.get_problem(title_slug)
 
-    _associate_topics(problem)
 
-    return Response(problem.data, status=status.HTTP_200_OK)
+@api_view(['GET'])
+def create_problem(request, title_slug: str) -> Response:
+    return database.create_problem(title_slug)
+
+    # server_response: HTTPStatus = database.create_problem(title_slug)
+    # if server_response != HTTPStatus.OK:
+    #     return Response({'error': status.description}, status=server_response.value)
+
+    # return Response({'error': ''}, status=status.HTTP_201_CREATED)
 
 
 def _get_or_create_problem(title_slug: str) -> Problem:

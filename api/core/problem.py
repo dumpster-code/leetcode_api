@@ -24,7 +24,7 @@ class LeetCodeProblem:
         self.code_lang: Dict[str, str] = {code['lang']: code['code'] for code in json.get('codeSnippets')}
         self.code_slug: Dict[str, str] = {code['langSlug']: code['code'] for code in json.get('codeSnippets')}
 
-        self.similar_questions: str = json.get('similarQuestionList', '')
+        self.similar_questions: List[Dict[str, str]] = json.get('similarQuestionList', '')
 
         self.topics: List[Dict[str, str]] = json.get('topicTags')
 
