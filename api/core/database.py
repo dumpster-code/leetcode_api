@@ -1,17 +1,16 @@
 from http import HTTPStatus
-from typing import Any, Optional, Dict
+from typing import Any, Dict
 
 from rest_framework.response import Response
 from rest_framework import status
 
 from api.core.leetcode import LeetCode
-from api.core.problem import LeetCodeProblem
 from api.models import Topic, Problem
 from api.serializers import TopicSerializer, ProblemSerializer
 
 
 def create_problem(slug: str) -> Response:
-    query = Problem.objects.filter(title_slug=slug)
+    query = Problem.objects.filter(titleSlug=slug)
     if query.exists():
         return Response(
             data={'error': f'Problem: "{slug}" already exists.'},
@@ -19,18 +18,10 @@ def create_problem(slug: str) -> Response:
         )
 
     lc = LeetCode()
-    problem: Optional[LeetCodeProblem] = lc.get(slug)
-    # import json
-    # print(json.dumps(problem, indent=4))
+    problem: Dict[str, Any] = lc.get(slug)
+    problem['url'] = f'https://leetcode.com/problems/{slug}/description/'
 
-    # if not problem:
-    #     return Response(
-    #         data={'error': f'Error finding problem: "{slug}". The problem does not exist.'},
-    #         status=status.HTTP_400_BAD_REQUEST
-    #     )
-
-    data: Dict[str, Any] = _serialize_problem(problem)
-    serializer = ProblemSerializer(data=data)
+    serializer = ProblemSerializer(data=problem)
 
     if not serializer.is_valid():
         return Response(
@@ -47,7 +38,7 @@ def create_problem(slug: str) -> Response:
 
 def get_problem(slug: str) -> Response:
     try:
-        problem = Problem.objects.get(title_slug=slug)
+        problem = Problem.objects.get(titleSlug=slug)
     except Problem.DoesNotExist:
         return Response(
             data={'error': f'Problem with slug {slug} not found.'},
@@ -76,25 +67,3 @@ def create_topic(name: str, slug: str) -> HTTPStatus:
 
     serializer.save()
     return HTTPStatus.OK
-
-
-def _serialize_problem(problem) -> Dict[str, Any]:
-    """Serializes a LeetCodeProblem instance into a dictionary."""
-    return {
-        'data': problem.json,
-        'content': problem.content,
-        'difficulty': problem.difficulty,
-        'dislikes': problem.dislikes,
-        'test_cases': problem.test_cases,
-        'hints': problem.hints,
-        'paid_only': problem.paid_only,
-        'likes': problem.likes,
-        'question_id': problem.question_id,
-        'stats': problem.stats,
-        'title': problem.title,
-        'title_slug': problem.title_slug,
-        'url': problem.url,
-        'code_lang': problem.code_lang,
-        'code_slug': problem.code_slug,
-        'topic_tags': problem.topics,
-    }

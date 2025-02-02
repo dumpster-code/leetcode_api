@@ -14,15 +14,10 @@ def get_problem(request, title_slug: str) -> Response:
     return database.get_problem(title_slug)
 
 
+# TODO: Change to POST
 @api_view(['GET'])
 def create_problem(request, title_slug: str) -> Response:
     return database.create_problem(title_slug)
-
-    # server_response: HTTPStatus = database.create_problem(title_slug)
-    # if server_response != HTTPStatus.OK:
-    #     return Response({'error': status.description}, status=server_response.value)
-
-    # return Response({'error': ''}, status=status.HTTP_201_CREATED)
 
 
 def _get_or_create_problem(title_slug: str) -> Problem:

@@ -13,26 +13,4 @@ class ProblemSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Problem
-        fields = [
-            'data',
-            'content',
-            'difficulty',
-            'dislikes',
-            'test_cases',
-            'hints',
-            'paid_only',
-            'likes',
-            'question_id',
-            'stats',
-            'title',
-            'title_slug',
-            'url',
-            'code_lang',
-            'code_slug',
-            'personal_difficulty',
-            'topics',
-            'topic_tags',
-            'date_added',
-            'last_solved',
-            'solved_count',
-        ]
+        fields = '__all__'

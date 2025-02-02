@@ -1,34 +1,33 @@
-from typing import Any, Dict, Optional
+from typing import Any, Dict
 import requests
-import time
 
 from api.core.cookies import cookies
 from api.core.urls import GRAPHQL_URL
-from api.core.problem import LeetCodeProblem
 
 
 class LeetCode:
     def __init__(self):
         self.cookies: str = cookies
-
         separator = '; '
-
         key_value = cookies.split(separator)
         self.cookies: Dict[str, str] = {key: value for pair in key_value for key, value in [pair.split('=', 1)]}
+
         self.header = {
             'Content-Type': 'application/json',
             'X-CSRFToken': self.cookies['csrftoken'],
         }
 
-    def get(self, slug: str) -> Optional[LeetCodeProblem]:
+    def get(self, slug: str) -> Dict[str, Any]:
         data = self.__get_question_data(slug)
         if not data:
             print(f'Failed to get question data for: {slug}')
             return None
 
-        return LeetCodeProblem(data)
+        return data
 
-    def daily_question(self) -> Optional[LeetCodeProblem]:
+        # return LeetCodeProblem(data)
+
+    def daily_question(self) -> Dict[str, Any]:
         payload = {
             'query': '''
             query questionOfToday {
@@ -47,7 +46,7 @@ class LeetCode:
             response.raise_for_status()
         except requests.exceptions.RequestException as e:
             print(f'Error during POST request: {e}')
-            return None
+            return {}
 
         json = response.json()
 
@@ -56,54 +55,51 @@ class LeetCode:
                    .get('question', {}) \
                    .get('titleSlug')
 
-        # import json
-        # print(json.dumps(json, indent=4))
-
         if not slug:
             print('Could not retrieve problem of the day')
             return None
 
         return self.get(slug)
 
-    def run(self, problem: LeetCodeProblem) -> bool:
-        self.header['Referer'] = problem.url
+    # def run(self, problem: LeetCodeProblem) -> bool:
+    #     self.header['Referer'] = problem.url
 
-        payload = problem.payload()
-        end_point = f'https://leetcode.com/problems/{problem.title_slug}/interpret_solution/'
+    #     payload = problem.payload()
+    #     end_point = f'https://leetcode.com/problems/{problem.title_slug}/interpret_solution/'
 
-        try:
-            response = requests.post(end_point, json=payload, headers=self.header, cookies=self.cookies)
-            response.raise_for_status()
-        except requests.exceptions.RequestException as e:
-            print(f'Error during POST request: {e}')
+    #     try:
+    #         response = requests.post(end_point, json=payload, headers=self.header, cookies=self.cookies)
+    #         response.raise_for_status()
+    #     except requests.exceptions.RequestException as e:
+    #         print(f'Error during POST request: {e}')
 
-        response: Dict[str, str] = response.json()
-        interpret_id: str = response.get('interpret_id')
-        if not interpret_id:
-            return False
+    #     response: Dict[str, str] = response.json()
+    #     interpret_id: str = response.get('interpret_id')
+    #     if not interpret_id:
+    #         return False
 
-        print(f'Interpret ID: {interpret_id}')
-        url = f'https://leetcode.com/submissions/detail/{interpret_id}/check/'
+    #     print(f'Interpret ID: {interpret_id}')
+    #     url = f'https://leetcode.com/submissions/detail/{interpret_id}/check/'
 
-        success = False
-        retries = 5
-        while not success and retries > 0:
-            try:
-                response = requests.get(url, headers=self.header, cookies=self.cookies)
-                response.raise_for_status()
-                json = response.json()
-                success = 'state' in json and json['state'] == 'SUCCESS'
-                if success:
-                    print('Submission successful!')
-                else:
-                    print('Waiting for submission to complete...')
-            except requests.exceptions.RequestException as e:
-                print(f'Error during GET request: {e}')
+    #     success = False
+    #     retries = 5
+    #     while not success and retries > 0:
+    #         try:
+    #             response = requests.get(url, headers=self.header, cookies=self.cookies)
+    #             response.raise_for_status()
+    #             json = response.json()
+    #             success = 'state' in json and json['state'] == 'SUCCESS'
+    #             if success:
+    #                 print('Submission successful!')
+    #             else:
+    #                 print('Waiting for submission to complete...')
+    #         except requests.exceptions.RequestException as e:
+    #             print(f'Error during GET request: {e}')
 
-            retries -= 1
-            time.sleep(1)
+    #         retries -= 1
+    #         time.sleep(1)
 
-        print(json)
+    #     print(json)
 
     def __get_question_data(self, slug: str) -> Dict[str, Any]:
         payload = {
@@ -136,7 +132,6 @@ class LeetCode:
                         name
                         slug
                     }
-                    isPaidOnly
                 }
             }
             ''',
@@ -177,3 +172,12 @@ class LeetCode:
 
         json = response.json()
         return json['data']['syncedCode']
+
+    def __payload(self) -> Dict[str, str]:
+        slug = 'python'
+        return {
+            'lang': slug,
+            'question_id': self.question_id,
+            'typed_code': self.code_slug[slug],
+            'data_input': '\n'.join(self.example_testcase_list),
+        }
