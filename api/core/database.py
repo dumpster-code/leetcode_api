@@ -85,6 +85,20 @@ def get_problem(slug: str) -> Response:
     )
 
 
+def get_query(request) -> Response:
+    queryset = Problem.objects.all()
+
+    for key, value in request.GET.items():
+        if hasattr(Problem, key):
+            queryset = queryset.filter(**{key: value})
+
+    serializer = ProblemSerializer(queryset, many=True)
+    return Response(
+        data=serializer.data,
+        status=status.HTTP_200_OK
+    )
+
+
 def create_topic(name: str, slug: str) -> Response:
     if Topic.objects.filter(name=name, slug=slug).exists():
         return Response(
