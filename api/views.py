@@ -24,3 +24,9 @@ def get_query(request: Request) -> Response:
 @api_view(['GET'])
 def create_problem(request: Request, title_slug: str) -> Response:
     return database.create_problem(title_slug)
+
+
+# TODO: Change to DELETE
+@api_view(['GET'])
+def delete_problem(request: Request, title_slug: str) -> Response:
+    return database.delete_problem(title_slug)

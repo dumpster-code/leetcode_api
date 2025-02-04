@@ -10,7 +10,15 @@ from api.models import Topic, Problem
 from api.serializers import TopicSerializer, ProblemSerializer
 
 
+queued_problems: set = set()
+
+
 def create_problem(slug: str) -> Response:
+    # global queued_problems
+
+    # queued_problems.discard(slug)
+    # print(f'queued_problems: {len(queued_problems)}')
+
     if Problem.objects.filter(titleSlug=slug).exists():
         return Response(
             data={'error': f'Problem: "{slug}" already exists.'},
@@ -37,6 +45,8 @@ def create_problem(slug: str) -> Response:
             data={'error': 'Could not link problem with its topics'},
             status=status.HTTP_400_BAD_REQUEST
         )
+
+    # queued_problems.update(q['titleSlug'] for q in problem_data.get('similarQuestionList', []))
 
     for similar_question in problem_data.get('similarQuestionList', []):
         similar_question_slug = similar_question['titleSlug']
@@ -98,6 +108,22 @@ def get_daily_problem() -> Response:
         return response
 
     return create_problem(slug)
+
+
+def delete_problem(slug: str) -> Response:
+    if not Problem.objects.filter(titleSlug=slug).exists():
+        return Response(
+            data={'error', f'Problem with slug: {slug} does not exist'},
+            status=status.HTTP_400_BAD_REQUEST
+        )
+
+    problem = Problem.objects.get(titleSlug=slug)
+    problem.delete()
+
+    return Response(
+        data={'message': f'Problem: {slug} deleted'},
+        status=status.HTTP_200_OK
+    )
 
 
 def get_query(request) -> Response:
