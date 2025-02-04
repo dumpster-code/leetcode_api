@@ -40,3 +40,6 @@ class Problem(models.Model):
 
     class Meta:
         ordering = ['questionId']
+
+    def __str__(self):
+        return self.titleSlug

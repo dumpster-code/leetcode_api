@@ -11,6 +11,11 @@ def get_problem(request: Request, title_slug: str) -> Response:
 
 
 @api_view(['GET'])
+def get_daily_problem(request: Request) -> Response:
+    return database.get_daily_problem()
+
+
+@api_view(['GET'])
 def get_query(request: Request) -> Response:
     return database.get_query(request)
 

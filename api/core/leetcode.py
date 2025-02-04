@@ -25,8 +25,6 @@ class LeetCode:
 
         return data
 
-        # return LeetCodeProblem(data)
-
     def daily_question(self) -> Dict[str, Any]:
         payload = {
             'query': '''

@@ -11,13 +11,6 @@ from api.serializers import TopicSerializer, ProblemSerializer
 
 
 def create_problem(slug: str) -> Response:
-    problem = Problem.objects.filter(titleSlug='two-sum').first()
-    if problem:
-        related_problems = problem.related_problems.all()
-        print([p.titleSlug for p in related_problems])
-    else:
-        print("Problem with slug 'two-sum' not found.")
-
     if Problem.objects.filter(titleSlug=slug).exists():
         return Response(
             data={'error': f'Problem: "{slug}" already exists.'},
@@ -38,7 +31,12 @@ def create_problem(slug: str) -> Response:
         )
 
     problem_instance = serializer.save()
-    link_problem_to_topic(problem_instance)
+
+    if not link_problem_to_topic(problem_instance):
+        return Response(
+            data={'error': 'Could not link problem with its topics'},
+            status=status.HTTP_400_BAD_REQUEST
+        )
 
     for similar_question in problem_data.get('similarQuestionList', []):
         similar_question_slug = similar_question['titleSlug']
@@ -58,8 +56,11 @@ def create_problem(slug: str) -> Response:
     )
 
 
-def link_problem_to_topic(problem: Problem):
+def link_problem_to_topic(problem: Problem) -> bool:
     for topic_name, topic_slug in [t.values() for t in problem.topicTags]:
+        if not topic_name or not topic_slug:
+            return False
+
         if not Topic.objects.filter(name=topic_name, slug=topic_slug).exists():
             create_topic(topic_name, topic_slug)
 
@@ -67,6 +68,8 @@ def link_problem_to_topic(problem: Problem):
         problem.topics.add(topic)
 
         topic.save()
+
+    return True
 
 
 def get_problem(slug: str) -> Response:
@@ -83,6 +86,18 @@ def get_problem(slug: str) -> Response:
         data=serializer.data,
         status=status.HTTP_200_OK
     )
+
+
+def get_daily_problem() -> Response:
+    lc = LeetCode()
+    data = lc.daily_question()
+    slug = data['titleSlug']
+
+    response = get_problem(slug)
+    if response.status_code == status.HTTP_200_OK:
+        return response
+
+    return create_problem(slug)
 
 
 def get_query(request) -> Response:

@@ -1,8 +1,9 @@
 from django.urls import path
-from .views import get_problem, get_query, create_problem
+from . import views
 
 urlpatterns = [
-    path('problem/', get_query, name='get_query'),
-    path('problem/<slug:title_slug>/', get_problem, name='get_problem'),
-    path('problem/create/<slug:title_slug>/', create_problem, name='create_problem'),
+    path('problem/', views.get_query, name='get_query'),
+    path('problem/daily/', views.get_daily_problem, name='get_daily_problem'),
+    path('problem/<slug:title_slug>/', views.get_problem, name='get_problem'),
+    path('problem/create/<slug:title_slug>/', views.create_problem, name='create_problem'),
 ]
