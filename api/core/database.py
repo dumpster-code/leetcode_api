@@ -79,8 +79,6 @@ def get_problem(slug: str) -> Response:
 
 
 def get_daily_problem() -> Response:
-    link_related_problems()
-
     lc = LeetCode()
     data = lc.daily_question()
     slug = data['titleSlug']
