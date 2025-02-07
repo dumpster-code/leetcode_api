@@ -1,13 +1,17 @@
+from dotenv import load_dotenv
 from typing import Any, Dict
+import os
 import requests
 
-from api.core.cookies import cookies
 from api.core.urls import GRAPHQL_URL
+
+
+load_dotenv()
 
 
 class LeetCode:
     def __init__(self):
-        self.cookies: str = cookies
+        cookies: str = os.getenv('cookies')
         separator = '; '
         key_value = cookies.split(separator)
         self.cookies: Dict[str, str] = {key: value for pair in key_value for key, value in [pair.split('=', 1)]}
