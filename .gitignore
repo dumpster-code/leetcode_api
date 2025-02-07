@@ -1,9 +1,9 @@
 # django
 db.sqlite3
-*.env
 
 # python
 __pycache__
+.env
 env
 
 *.json
