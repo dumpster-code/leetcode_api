@@ -1,3 +1,5 @@
+import os
+import json
 from typing import Any, Dict
 import time
 import random
@@ -10,23 +12,15 @@ from api.models import Topic, Problem
 from api.serializers import TopicSerializer, ProblemSerializer
 
 
-queued_problems: set = set()
-
-
 def create_problem(slug: str) -> Response:
-    # global queued_problems
-
-    # queued_problems.discard(slug)
-    # print(f'queued_problems: {len(queued_problems)}')
-
     if Problem.objects.filter(titleSlug=slug).exists():
         return Response(
             data={'error': f'Problem: "{slug}" already exists.'},
             status=status.HTTP_409_CONFLICT
         )
 
-    time.sleep(random.uniform(1.0, 3.0))
-
+    # need to update to throw correct Response when
+    # fetching a problem that is paid only
     lc = LeetCode()
     problem_data: Dict[str, Any] = lc.get(slug)
     problem_data['url'] = f'https://leetcode.com/problems/{slug}/description/'
@@ -45,20 +39,6 @@ def create_problem(slug: str) -> Response:
             data={'error': 'Could not link problem with its topics'},
             status=status.HTTP_400_BAD_REQUEST
         )
-
-    # queued_problems.update(q['titleSlug'] for q in problem_data.get('similarQuestionList', []))
-
-    for similar_question in problem_data.get('similarQuestionList', []):
-        similar_question_slug = similar_question['titleSlug']
-
-        related_problem = Problem.objects.filter(titleSlug=similar_question_slug).first()
-        if related_problem is None:
-            response = create_problem(similar_question_slug)
-            if response.status_code == status.HTTP_201_CREATED:
-                related_problem = Problem.objects.get(titleSlug=similar_question_slug)
-
-        if related_problem:
-            problem_instance.related_problems.add(related_problem)
 
     return Response(
         data=serializer.data,
@@ -83,9 +63,9 @@ def link_problem_to_topic(problem: Problem) -> bool:
 
 
 def get_problem(slug: str) -> Response:
-    try:
-        problem = Problem.objects.get(titleSlug=slug)
-    except Problem.DoesNotExist:
+    problem = Problem.objects.filter(titleSlug=slug).first()
+
+    if problem is None:
         return Response(
             data={'error': f'Problem with slug {slug} not found.'},
             status=status.HTTP_404_NOT_FOUND
@@ -99,6 +79,8 @@ def get_problem(slug: str) -> Response:
 
 
 def get_daily_problem() -> Response:
+    link_related_problems()
+
     lc = LeetCode()
     data = lc.daily_question()
     slug = data['titleSlug']
@@ -111,13 +93,14 @@ def get_daily_problem() -> Response:
 
 
 def delete_problem(slug: str) -> Response:
-    if not Problem.objects.filter(titleSlug=slug).exists():
+    problem = Problem.objects.filter(titleSlug=slug).first()
+
+    if not problem:
         return Response(
-            data={'error', f'Problem with slug: {slug} does not exist'},
+            data={'error': f'Problem with slug: {slug} does not exist'},
             status=status.HTTP_400_BAD_REQUEST
         )
 
-    problem = Problem.objects.get(titleSlug=slug)
     problem.delete()
 
     return Response(
@@ -180,3 +163,53 @@ def get_topic(name: str, slug: str) -> Response:
         data=serializer.data,
         status=status.HTTP_200_OK
     )
+
+
+# ---------------------------------------------------------------------------------------------------
+
+
+def get_all_problems():
+    file_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '../all_problems.json')
+
+    with open(file_path, 'r') as f:
+        data = json.load(f)
+
+    errors = []
+
+    for problem in data['data']['problemsetQuestionList']['questions']:
+        if (id := problem.get('frontendQuestionId')) and (slug := problem.get('titleSlug')):
+            if get_problem(slug).status_code == 200:
+                continue
+
+            time.sleep(random.uniform(3.0, 5.0))
+
+            if create_problem(slug).status_code != 201:
+                print(f'error: {id} {slug}')
+                errors.append({id, slug})
+                continue
+
+            print(f'success: {id} {slug}')
+
+
+def link_related_problems():
+    for idx, problem in enumerate(Problem.objects.all(), start=1):
+        print(f'{idx}: {problem}')
+        for similar_problem in problem.similarQuestionList:
+            if not similar_problem:
+                continue
+
+            similar_problem_slug = similar_problem.get('titleSlug')
+            if not similar_problem_slug:
+                continue
+
+            model = Problem.objects.filter(titleSlug=similar_problem_slug).first()
+            if not model:
+                continue
+
+            if problem.related_problems.filter(id=model.id).exists():
+                continue
+
+            print(f'    added: {model.titleSlug}')
+            problem.related_problems.add(model)
+
+        problem.save()

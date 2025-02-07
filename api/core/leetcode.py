@@ -59,6 +59,64 @@ class LeetCode:
 
         return self.get(slug)
 
+        # query = """
+        #     query problemsetQuestionList($categorySlug: String, $limit: Int, $skip: Int, $filters: QuestionListFilterInput) {
+        #         problemsetQuestionList: questionList(
+        #             categorySlug: $categorySlug
+        #             limit: $limit
+        #             skip: $skip
+        #             filters: $filters
+        #         ) {
+        #             total: totalNum
+        #             questions: data {
+        #                 acRate
+        #                 difficulty
+        #                 freqBar
+        #                 frontendQuestionId: questionFrontendId
+        #                 isFavor
+        #                 paidOnly: isPaidOnly
+        #                 status
+        #                 title
+        #                 titleSlug
+        #                 topicTags {
+        #                     name
+        #                     id
+        #                     slug
+        #                 }
+        #                 hasSolution
+        #                 hasVideoSolution
+        #             }
+        #         }
+        #     }
+        # """
+    def get_problem_list(self) -> Dict[str, Any]:
+        query = """
+            query problemsetQuestionList($categorySlug: String, $limit: Int, $skip: Int, $filters: QuestionListFilterInput) {
+                problemsetQuestionList: questionList(
+                    categorySlug: $categorySlug
+                    limit: $limit
+                    skip: $skip
+                    filters: $filters
+                ) {
+                    total: totalNum
+                    questions: data {
+                        frontendQuestionId: questionFrontendId
+                        titleSlug
+                    }
+                }
+            }
+        """
+
+        variables = {
+            "categorySlug": "all-code-essentials",
+            "skip": 0,
+            "limit": 4000,
+            "filters": {}
+        }
+
+        response = requests.post(GRAPHQL_URL, headers=self.header, cookies=self.cookies, json={"query": query, "variables": variables})
+        return response.json()
+
     # def run(self, problem: LeetCodeProblem) -> bool:
     #     self.header['Referer'] = problem.url
 
