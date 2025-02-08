@@ -36,6 +36,16 @@ def problem_query(request) -> Response:
     return Response(serializer.data)
 
 
+@api_view(['GET'])
+def problem_random(request) -> Response:
+    problem = Problem.objects.order_by('?').first()
+    if not problem:
+        return Response({"error": "No problems found"}, status=404)
+
+    serializer = ProblemSerializer(problem)
+    return Response(serializer.data)
+
+
 @api_view(['POST'])
 def problem_create(request: HttpRequest) -> Response:
     serializer = ProblemSerializer(data=request.data)
