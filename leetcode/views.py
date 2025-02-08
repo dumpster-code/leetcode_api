@@ -15,10 +15,9 @@ lc = LeetCode()
 @api_view(['GET'])
 def problem_daily(request: HttpRequest) -> Response:
     # TODO: handle errors
-    response = Response(lc.daily_question())
-    slug = response.get('titleSlug', '')
+    slug = lc.daily_question()
 
-    return problem_detail(slug)
+    return problem_detail(request._request, slug)
 
 
 @api_view(['GET'])

@@ -71,7 +71,7 @@ class LeetCode:
 
         return response.json()
 
-    def daily_question(self) -> Dict[str, Any]:
+    def daily_question(self) -> str:
         payload = {
             'query': '''
             query questionOfToday {
@@ -101,9 +101,9 @@ class LeetCode:
 
         if not slug:
             print('Could not retrieve problem of the day')
-            return None
+            return {}
 
-        return self.get(slug)
+        return slug
 
         # query = """
         #     query problemsetQuestionList($categorySlug: String, $limit: Int, $skip: Int, $filters: QuestionListFilterInput) {
