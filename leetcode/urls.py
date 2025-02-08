@@ -11,10 +11,10 @@ from .views import (
 )
 
 urlpatterns = [
-    path('<slug:slug>', problem_detail, name='problem-detail'),
-    path('', problem_query, name='problem-query'),
     path('daily', problem_daily, name='problem-daily'),
     path('random', problem_random, name='problem-random'),
-
     path('create', problem_create, name='problem-create'),
+
+    path('', problem_query, name='problem-query'),
+    path('<slug:slug>/', problem_detail, name='problem-detail'),
 ]

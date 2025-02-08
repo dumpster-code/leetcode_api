@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from problem.models.problem import Problem
+from leetcode.models.problem import Problem
 
 
 class ProblemSerializer(serializers.ModelSerializer):

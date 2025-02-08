@@ -21,7 +21,7 @@ class Problem(models.Model):
 
     url = models.CharField(max_length=256)
 
-    topics = models.ManyToManyField('problem.Topic', related_name='problems', blank=True)
+    topics = models.ManyToManyField('leetcode.Topic', related_name='problems', blank=True)
     relatedProblems = models.ManyToManyField('self', symmetrical=True, blank=True)
 
     class Meta:

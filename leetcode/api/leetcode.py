@@ -71,7 +71,6 @@ class LeetCode:
 
         return response.json()
 
-
     def daily_question(self) -> Dict[str, Any]:
         payload = {
             'query': '''
