@@ -169,7 +169,7 @@ class LeetCode:
 
         payload = {
             # TODO: defaulting to python for now
-            'lang': 'python',
+            'lang': data.get('lang', ''),
             'question_id': data.get('questionId', ''),
             'typed_code': data.get('codeSlug', ''),
             'data_input': data.get('exampleTestcaseList', ''),
@@ -180,15 +180,23 @@ class LeetCode:
         try:
             response = requests.post(end_point, json=payload, headers=self.header, cookies=self.cookies)
             response.raise_for_status()
+        except requests.exceptions.HTTPError as e:
+            print(f'HTTP Error: {e.response.status_code} - {e.response.reason}')
+            print(f'Response Content: {e.response.text}')
+        except requests.exceptions.ConnectionError as e:
+            print(f'Connection Error: {e}')
+        except requests.exceptions.Timeout as e:
+            print(f'Timeout Error: {e}')
         except requests.exceptions.RequestException as e:
-            print(f'Error during POST request: {e}')
+            print(f'General Request Error: {e}')
 
         response: Dict[str, str] = response.json()
         interpret_id: str = response.get('interpret_id')
-        if not interpret_id:
-            return False
 
-        print(f'Interpret ID: {interpret_id}')
+        if not interpret_id:
+            return {}
+
+        print('Waiting', end='', flush=True)
         url = f'https://leetcode.com/submissions/detail/{interpret_id}/check/'
 
         success = False
@@ -200,9 +208,9 @@ class LeetCode:
                 json = response.json()
                 success = 'state' in json and json['state'] == 'SUCCESS'
                 if success:
-                    print('Submission successful!')
+                    print(' Done', flush=True)
                 else:
-                    print('Waiting for submission to complete...')
+                    print('.', end='', flush=True)
             except requests.exceptions.RequestException as e:
                 print(f'Error during GET request: {e}')
 

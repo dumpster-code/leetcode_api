@@ -13,33 +13,6 @@ lc = LeetCode()
 
 
 @api_view(['GET'])
-def problem_detail(request: HttpRequest, slug: str) -> Response:
-    try:
-        problem = Problem.objects.get(titleSlug=slug)
-    except Problem.DoesNotExist:
-        raise NotFound(detail=f'Problem with slug: {slug} does not exist', code=404)
-
-    serializer = ProblemSerializer(problem)
-    return Response(serializer.data)
-
-
-@api_view(['GET'])
-def problem_query(request) -> Response:
-    query_set = Problem.objects.all()
-
-    valid_fields = {field.name for field in Problem._meta.get_fields()}
-
-    filters = {key: value for key, value in request.GET.items() if key in valid_fields}
-    query_set = query_set.filter(**filters)
-
-    serializer = ProblemSerializer(query_set, many=True)
-    if not serializer.is_valid():
-        return Response(serializer.errors, status=400)
-
-    return Response(serializer.data, status=200)
-
-
-@api_view(['GET'])
 def problem_daily(request: HttpRequest) -> Response:
     # TODO: handle errors
     response = Response(lc.daily_question())
@@ -66,6 +39,40 @@ def problem_create(request: HttpRequest) -> Response:
 
     serializer.save()
     return Response(serializer.data, status=201)
+
+
+@api_view(['POST'])
+def problem_run(request) -> Response:
+    # TODO: handle errors
+    response = lc.run(request.data)
+    return Response(response.data, status=200)
+
+
+@api_view(['GET'])
+def problem_detail(request: HttpRequest, slug: str) -> Response:
+    try:
+        problem = Problem.objects.get(titleSlug=slug)
+    except Problem.DoesNotExist:
+        raise NotFound(detail=f'Problem with slug: {slug} does not exist', code=404)
+
+    serializer = ProblemSerializer(problem)
+    return Response(serializer.data)
+
+
+@api_view(['GET'])
+def problem_query(request) -> Response:
+    query_set = Problem.objects.all()
+
+    valid_fields = {field.name for field in Problem._meta.get_fields()}
+
+    filters = {key: value for key, value in request.GET.items() if key in valid_fields}
+    query_set = query_set.filter(**filters)
+
+    serializer = ProblemSerializer(query_set, many=True)
+    if not serializer.is_valid():
+        return Response(serializer.errors, status=400)
+
+    return Response(serializer.data, status=200)
 
 
 @api_view(['PUT', 'PATCH'])
@@ -96,8 +103,3 @@ def problem_delete(request, slug: str) -> Response:
     return Response(status=204)
 
 
-@api_view(['GET'])
-def problem_run(request) -> Response:
-    # TODO: handle errors
-    response = lc.run(request.data)
-    return Response(response.data, status=200)
