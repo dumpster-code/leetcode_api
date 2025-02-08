@@ -5,14 +5,12 @@ local function run_python_script(script_path)
         stdout_buffered = true,
         on_stdout = function(_, data)
             if data then
-                -- Convert JSON output to a string
                 local json_output = table.concat(data, "\n")
 
                 -- Open a new buffer and set content
                 vim.cmd("new") -- Open a new buffer
                 vim.api.nvim_buf_set_lines(0, 0, -1, false, data)
 
-                -- Optional: Set filetype to JSON for syntax highlighting
                 vim.bo.filetype = "json"
             end
         end
@@ -50,7 +48,7 @@ local function display_in_new_buffer(content)
     end
 
     vim.api.nvim_buf_set_lines(buf, 0, -1, false, content)
-    vim.bo.filetype = "cpp"  -- Set filetype for syntax highlighting
+    vim.bo.filetype = "cpp"
 end
 
 local function get_daily_problem()
