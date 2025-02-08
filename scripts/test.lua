@@ -7,7 +7,6 @@ local function run_python_script(script_path)
             if data then
                 local json_output = table.concat(data, "\n")
 
-                -- Open a new buffer and set content
                 vim.cmd("new") -- Open a new buffer
                 vim.api.nvim_buf_set_lines(0, 0, -1, false, data)
 
