@@ -68,9 +68,15 @@ def problem_query(request) -> Response:
     filters = {key: value for key, value in request.GET.items() if key in valid_fields}
     query_set = query_set.filter(**filters)
 
+    ordering = request.GET.get("ordering")
+    if ordering:
+        query_set = query_set.order_by(ordering)
+
+    limit = request.GET.get("limit")
+    if limit and limit.isdigit():
+        query_set = query_set[:int(limit)]
+
     serializer = ProblemSerializer(query_set, many=True)
-    if not serializer.is_valid():
-        return Response(serializer.errors, status=400)
 
     return Response(serializer.data, status=200)
 

@@ -17,7 +17,6 @@ class Problem(models.Model):
 
     codeSnippets = models.JSONField()
     similarQuestionList = models.JSONField()
-    topicTags = models.JSONField()
 
     url = models.CharField(max_length=256)
 
