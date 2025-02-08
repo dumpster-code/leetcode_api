@@ -49,7 +49,7 @@ class LeetCode:
             response.raise_for_status()
         except requests.exceptions.RequestException as e:
             print(f'Error during POST request: {e}')
-            return {}
+            return response.json()
 
         json = response.json()
 

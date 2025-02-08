@@ -33,7 +33,19 @@ def problem_query(request) -> Response:
     query_set = query_set.filter(**filters)
 
     serializer = ProblemSerializer(query_set, many=True)
-    return Response(serializer.data)
+    if not serializer.is_valid():
+        return Response(serializer.errors, status=400)
+
+    return Response(serializer.data, status=200)
+
+
+@api_view(['GET'])
+def problem_daily(request: HttpRequest) -> Response:
+    # TODO: handle errors
+    response = Response(lc.daily_question())
+    slug = response.get('titleSlug', '')
+
+    return problem_detail(slug)
 
 
 @api_view(['GET'])
@@ -43,7 +55,7 @@ def problem_random(request) -> Response:
         return Response({"error": "No problems found"}, status=404)
 
     serializer = ProblemSerializer(problem)
-    return Response(serializer.data)
+    return Response(serializer.data, status=200)
 
 
 @api_view(['POST'])
@@ -54,13 +66,6 @@ def problem_create(request: HttpRequest) -> Response:
 
     serializer.save()
     return Response(serializer.data, status=201)
-
-
-@api_view(['GET'])
-def problem_run(request) -> Response:
-    # TODO: handle errors
-    response = lc.run(request.data)
-    return Response(response.data, status=200)
 
 
 @api_view(['PUT', 'PATCH'])
@@ -81,7 +86,7 @@ def problem_update(request) -> Response:
 
 
 @api_view(['DELETE'])
-def problem_delete(request, slug: str):
+def problem_delete(request, slug: str) -> Response:
     try:
         problem = Problem.objects.get(titleSlug=slug)
     except Problem.DoesNotExist:
@@ -92,9 +97,7 @@ def problem_delete(request, slug: str):
 
 
 @api_view(['GET'])
-def daily_detail(request: HttpRequest) -> Response:
+def problem_run(request) -> Response:
     # TODO: handle errors
-    response = Response(lc.daily_question())
-    slug = response.get('titleSlug', '')
-
-    return problem_detail(slug)
+    response = lc.run(request.data)
+    return Response(response.data, status=200)
