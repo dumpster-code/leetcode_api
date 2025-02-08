@@ -1,17 +1,29 @@
---local script_path = arg[0] or "scripts/test.lua"
---API_DIR = script_path:gsub("/scripts/.*$", "/")
+local script_path = debug.getinfo(1, "S").source:sub(2)
+API_DIR = script_path:gsub("/scripts/[^/]+$", "/")
 
-local function run_python_script(script_path)
-    vim.fn.jobstart({ "python", script_path }, {
+local function run_python_script(path)
+    path = API_DIR .. path
+
+    vim.fn.jobstart({ "python", path }, {
         stdout_buffered = true,
         on_stdout = function(_, data)
-            if data then
-                local json_output = table.concat(data, "\n")
+            if data and #data > 0 then
+                local content = table.concat(data, "\n")
 
-                vim.cmd("new") -- Open a new buffer
-                vim.api.nvim_buf_set_lines(0, 0, -1, false, data)
+                vim.cmd("enew")
+                local buf = vim.api.nvim_get_current_buf()
+
+                local lines = vim.split(content, "\n")
+                vim.api.nvim_buf_set_lines(buf, 0, -1, false, lines)
 
                 vim.bo.filetype = "json"
+            else
+                print("No output from Python script.")
+            end
+        end,
+        on_stderr = function(_, data)
+            if data and #data > 0 then
+                print("Python script error: " .. table.concat(data, "\n"))
             end
         end
     })
@@ -78,5 +90,4 @@ local function get_daily_problem()
 end
 
 get_daily_problem()
-
--- run_python_script("/home/david/Desktop/development/leetcode/scripts/problem_run.py")
+-- run_python_script("scripts/problem_run.py")
