@@ -1,4 +1,5 @@
-API_DIR = '/home/david/Desktop/development/leetcode/'
+--local script_path = arg[0] or "scripts/test.lua"
+--API_DIR = script_path:gsub("/scripts/.*$", "/")
 
 local function run_python_script(script_path)
     vim.fn.jobstart({ "python", script_path }, {
