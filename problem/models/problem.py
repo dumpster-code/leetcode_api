@@ -21,12 +21,8 @@ class Problem(models.Model):
 
     url = models.CharField(max_length=256)
 
-    personalDifficulty = models.FloatField(default=5.0)
     topics = models.ManyToManyField('problem.Topic', related_name='problems', blank=True)
     relatedProblems = models.ManyToManyField('self', symmetrical=True, blank=True)
-
-    lastSolved = models.DateTimeField(null=True, blank=True)
-    solvedCount = models.IntegerField(default=0)
 
     class Meta:
         ordering = ['questionId']
