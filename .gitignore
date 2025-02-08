@@ -8,7 +8,4 @@ env
 
 *.json
 
-# ignore these for now until out of testing
-api/migrations/*
-
 info.txt

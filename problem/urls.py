@@ -8,5 +8,5 @@ from .views import (
 
 urlpatterns = [
     path('<slug:slug>', problem_detail, name='problem-detail'),
-    path('create', problem_create, name='problem-create')
+    path('create', problem_create, name='problem-create'),
 ]

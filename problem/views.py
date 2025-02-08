@@ -4,12 +4,18 @@ from rest_framework.decorators import api_view
 from rest_framework.exceptions import NotFound
 from rest_framework.response import Response
 
-from problem.models.problem import Problem
-from problem.serializers.problem import ProblemSerializer
+from .models.problem import Problem
+from .serializers.problem import ProblemSerializer
+
+from .api.leetcode import LeetCode
+
+lc = LeetCode()
 
 
 @api_view(['GET'])
 def problem_detail(request: HttpRequest, slug: str) -> Response:
+    return Response(lc.daily_question())
+
     try:
         problem = Problem.objects.get(titleSlug=slug)
     except Problem.DoesNotExist:
