@@ -25,8 +25,7 @@ def problem_detail(request: HttpRequest, slug: str) -> Response:
     return Response(serializer.data)
 
 
-# TODO: change to POST
-@api_view(['GET'])
+@api_view(['POST'])
 def problem_create(request: HttpRequest) -> Response:
     serializer = ProblemSerializer(data=request.data)
     if not serializer.is_valid():
@@ -36,14 +35,23 @@ def problem_create(request: HttpRequest) -> Response:
     return Response(serializer.data, status=201)
 
 
+@api_view(['GET'])
+def problem_run(request) -> Response:
+    # TODO: handle errors
+    response = lc.run(request.data)
+    return Response(response.data, status=200)
+
+
 @api_view(['PUT', 'PATCH'])
-def problem_update(request, slug: str):
+def problem_update(request) -> Response:
+    slug = request.data.get('titleSlug', '')
+
     try:
         problem = Problem.objects.get(titleSlug=slug)
     except Problem.DoesNotExist:
         raise NotFound(detail=f'Problem with slug: {slug} does not exist', code=404)
 
-    serializer = ProblemSerializer(problem)
+    serializer = ProblemSerializer(problem, data=request.data)
     if not serializer.is_valid():
         return Response(serializer.errors, status=400)
 
@@ -60,3 +68,12 @@ def problem_delete(request, slug: str):
 
     problem.delete()
     return Response(status=204)
+
+
+@api_view(['GET'])
+def daily_detail(request: HttpRequest) -> Response:
+    # TODO: handle errors
+    response = Response(lc.daily_question())
+    slug = response.get('titleSlug', '')
+
+    return problem_detail(slug)

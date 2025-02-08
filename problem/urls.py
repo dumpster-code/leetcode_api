@@ -7,6 +7,7 @@ from .views import (
 )
 
 urlpatterns = [
-    path('<slug:slug>', problem_detail, name='problem-detail'),
-    path('create', problem_create, name='problem-create'),
+    path('<slug:slug>/', problem_detail, name='problem-detail'),
+    path('create/', problem_create, name='problem-create'),
+    path('daily/', problem_create, name='problem-create'),
 ]

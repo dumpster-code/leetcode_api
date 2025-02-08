@@ -2,6 +2,7 @@ from dotenv import load_dotenv
 from typing import Any, Dict
 import os
 import requests
+import time
 
 GRAPHQL_URL = 'https://leetcode.com/graphql/'
 PROBLEM_URL = 'https://leetcode.com/problems/{}/description/'
@@ -121,45 +122,53 @@ class LeetCode:
         response = requests.post(GRAPHQL_URL, headers=self.header, cookies=self.cookies, json={"query": query, "variables": variables})
         return response.json()
 
-    # def run(self, problem: LeetCodeProblem) -> bool:
-    #     self.header['Referer'] = problem.url
+    def run(self, data: Dict[str, Any]) -> Dict[str, Any]:
+        self.header['Referer'] = data.get('url', '')
+        title_slug = data.get('titleSlug', '')
 
-    #     payload = problem.payload()
-    #     end_point = f'https://leetcode.com/problems/{problem.title_slug}/interpret_solution/'
+        payload = {
+            # TODO: defaulting to python for now
+            'lang': 'python',
+            'question_id': data.get('questionId', ''),
+            'typed_code': data.get('codeSlug', ''),
+            'data_input': data.get('exampleTestcaseList', ''),
+        }
 
-    #     try:
-    #         response = requests.post(end_point, json=payload, headers=self.header, cookies=self.cookies)
-    #         response.raise_for_status()
-    #     except requests.exceptions.RequestException as e:
-    #         print(f'Error during POST request: {e}')
+        end_point = f'https://leetcode.com/problems/{title_slug}/interpret_solution/'
 
-    #     response: Dict[str, str] = response.json()
-    #     interpret_id: str = response.get('interpret_id')
-    #     if not interpret_id:
-    #         return False
+        try:
+            response = requests.post(end_point, json=payload, headers=self.header, cookies=self.cookies)
+            response.raise_for_status()
+        except requests.exceptions.RequestException as e:
+            print(f'Error during POST request: {e}')
 
-    #     print(f'Interpret ID: {interpret_id}')
-    #     url = f'https://leetcode.com/submissions/detail/{interpret_id}/check/'
+        response: Dict[str, str] = response.json()
+        interpret_id: str = response.get('interpret_id')
+        if not interpret_id:
+            return False
 
-    #     success = False
-    #     retries = 5
-    #     while not success and retries > 0:
-    #         try:
-    #             response = requests.get(url, headers=self.header, cookies=self.cookies)
-    #             response.raise_for_status()
-    #             json = response.json()
-    #             success = 'state' in json and json['state'] == 'SUCCESS'
-    #             if success:
-    #                 print('Submission successful!')
-    #             else:
-    #                 print('Waiting for submission to complete...')
-    #         except requests.exceptions.RequestException as e:
-    #             print(f'Error during GET request: {e}')
+        print(f'Interpret ID: {interpret_id}')
+        url = f'https://leetcode.com/submissions/detail/{interpret_id}/check/'
 
-    #         retries -= 1
-    #         time.sleep(1)
+        success = False
+        retries = 5
+        while not success and retries > 0:
+            try:
+                response = requests.get(url, headers=self.header, cookies=self.cookies)
+                response.raise_for_status()
+                json = response.json()
+                success = 'state' in json and json['state'] == 'SUCCESS'
+                if success:
+                    print('Submission successful!')
+                else:
+                    print('Waiting for submission to complete...')
+            except requests.exceptions.RequestException as e:
+                print(f'Error during GET request: {e}')
 
-    #     print(json)
+            retries -= 1
+            time.sleep(1)
+
+        return json
 
     def __get_question_data(self, slug: str) -> Dict[str, Any]:
         payload = {
@@ -232,12 +241,3 @@ class LeetCode:
 
         json = response.json()
         return json['data']['syncedCode']
-
-    def __payload(self) -> Dict[str, str]:
-        slug = 'python'
-        return {
-            'lang': slug,
-            'question_id': self.question_id,
-            'typed_code': self.code_slug[slug],
-            'data_input': '\n'.join(self.example_testcase_list),
-        }
