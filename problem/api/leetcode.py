@@ -23,12 +23,54 @@ class LeetCode:
         }
 
     def get(self, slug: str) -> Dict[str, Any]:
-        data = self.__get_question_data(slug)
-        if not data:
-            print(f'Failed to get question data for: {slug}')
-            return None
+        payload = {
+            'query': '''
+            query questionData($titleSlug: String!) {
+                question(titleSlug: $titleSlug) {
+                    content
+                    difficulty
+                    dislikes
+                    exampleTestcaseList
+                    hints
+                    isPaidOnly
+                    likes
+                    questionId
+                    stats
+                    title
+                    titleSlug
+                    codeSnippets {
+                        code
+                        lang
+                        langSlug
+                    }
+                    similarQuestionList {
+                        difficulty
+                        isPaidOnly
+                        title
+                        titleSlug
+                    }
+                    topicTags {
+                        name
+                        slug
+                    }
+                }
+            }
+            ''',
+            'variables': {
+                'titleSlug': slug,
+            },
+            'operationName': 'questionData'
+        }
 
-        return data
+        try:
+            response = requests.post(GRAPHQL_URL, headers=self.header, cookies=self.cookies, json=payload)
+            response.raise_for_status()
+        except requests.exceptions.RequestException as e:
+            print(f'Error during POST request: {e}')
+            return {}
+
+        return response.json()
+
 
     def daily_question(self) -> Dict[str, Any]:
         payload = {
@@ -169,57 +211,6 @@ class LeetCode:
             time.sleep(1)
 
         return json
-
-    def __get_question_data(self, slug: str) -> Dict[str, Any]:
-        payload = {
-            'query': '''
-            query questionData($titleSlug: String!) {
-                question(titleSlug: $titleSlug) {
-                    content
-                    difficulty
-                    dislikes
-                    exampleTestcaseList
-                    hints
-                    isPaidOnly
-                    likes
-                    questionId
-                    stats
-                    title
-                    titleSlug
-                    codeSnippets {
-                        code
-                        lang
-                        langSlug
-                    }
-                    similarQuestionList {
-                        difficulty
-                        isPaidOnly
-                        title
-                        titleSlug
-                    }
-                    topicTags {
-                        name
-                        slug
-                    }
-                }
-            }
-            ''',
-            'variables': {
-                'titleSlug': slug,
-            },
-            'operationName': 'questionData'
-        }
-
-        try:
-            response = requests.post(GRAPHQL_URL, headers=self.header, cookies=self.cookies, json=payload)
-            response.raise_for_status()
-        except requests.exceptions.RequestException as e:
-            print(f'Error during POST request: {e}')
-            return {}
-
-        json = response.json()
-
-        return json['data']['question']
 
     def __get_synced_code(self, id: str) -> str:
         payload = {
