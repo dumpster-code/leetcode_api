@@ -1,0 +1,35 @@
+from django.db import models
+
+
+class Problem(models.Model):
+    content = models.TextField()
+    difficulty = models.CharField(max_length=6)
+    dislikes = models.IntegerField()
+    exampleTestcaseList = models.JSONField()
+    hints = models.JSONField()
+    isPaidOnly = models.BooleanField()
+    likes = models.IntegerField()
+    questionId = models.IntegerField(unique=True)
+    stats = models.JSONField()
+    title = models.CharField(max_length=128)
+    titleSlug = models.CharField(max_length=128)
+    topicTags = models.JSONField()
+
+    codeSnippets = models.JSONField()
+    similarQuestionList = models.JSONField()
+    topicTags = models.JSONField()
+
+    url = models.CharField(max_length=256)
+
+    personalDifficulty = models.FloatField(default=5.0)
+    topics = models.ManyToManyField('problem.Topic', related_name='problems', blank=True)
+    relatedProblems = models.ManyToManyField('self', symmetrical=True, blank=True)
+
+    lastSolved = models.DateTimeField(null=True, blank=True)
+    solvedCount = models.IntegerField(default=0)
+
+    class Meta:
+        ordering = ['questionId']
+
+    def __str__(self):
+        return self.titleSlug
