@@ -13,7 +13,7 @@ local function display_description_window()
         return
     end
 
-    local description_buf = vim.api.nvim_create_buf(false, true)     -- Create a new buffer
+    local description_buf = vim.api.nvim_create_buf(false, true)
     vim.bo[description_buf].filetype = "markdown"
     vim.bo[description_buf].modifiable = true
 
@@ -109,7 +109,6 @@ local function get_daily_problem()
             return
         end
 
-        -- Display C++ Code Snippet
         if response.codeSnippets then
             local cpp_code = nil
             for _, snippet in ipairs(response.codeSnippets) do
@@ -127,9 +126,8 @@ local function get_daily_problem()
         end
 
         if response.content then
-            -- Convert HTML to plain text (basic replacement)
             description_context = response.content
-                :gsub("<[^>]+>", "") -- Remove HTML tags
+                :gsub("<[^>]+>", "")
                 :gsub("&lt;", "<"):gsub("&gt;", ">"):gsub("&nbsp;", " ")
 
             print('display testing...' .. (description_context or "No description"))
@@ -149,5 +147,14 @@ vim.keymap.set("n", "<leader>ld", get_daily_problem, { desc = "[D]aily Problem" 
 vim.keymap.set("n", "<leader>lz", display_description_window, { desc = "[O]pen Description" })
 
 vim.keymap.set("n", "<leader>ls", ":wa | luafile " .. script_path .. "<CR>", { desc = "Write all and reload Lua file" })
+vim.keymap.set("n", "<leader>lt", function()
+    if description_win and vim.api.nvim_win_is_valid(description_win) then
+        local buf = vim.api.nvim_win_get_buf(description_win)
+        local lines = vim.api.nvim_buf_get_lines(buf, 0, -1, false)
+        print(table.concat(lines, "\n"))
+    else
+        print("No active description window.")
+    end
+end, { desc = "Get text from the floating window" })
 
 -- run_python_script("scripts/problem_run.py")
