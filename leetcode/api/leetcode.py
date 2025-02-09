@@ -168,7 +168,6 @@ class LeetCode:
         title_slug = data.get('titleSlug', '')
 
         payload = {
-            # TODO: defaulting to python for now
             'lang': data.get('lang', ''),
             'question_id': data.get('questionId', ''),
             'typed_code': data.get('codeSlug', ''),
